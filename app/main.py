@@ -93,7 +93,7 @@ async def handle_validation_error(
     return error_response(
         status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
         code="validation_error",
-        message="Request validation failed.",
+        message="Валидация запроса не удалась.",
         details=exc.errors(),
     )
 
@@ -144,7 +144,7 @@ def get_link_stats(code: str, service: ServiceDep) -> LinkStatsResponse:
 def deactivate_link(code: str, service: ServiceDep) -> DeleteLinkResponse:
     link = service.deactivate_link(code)
     return DeleteLinkResponse(
-        message="Ссылку деактивировали, всё ок.",
+        message="Ссылка деактивирована.",
         code=link.code,
         is_active=link.is_active(),
     )

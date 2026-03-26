@@ -39,7 +39,7 @@ class CreateLinkRequest(BaseModel):
             char not in ALLOWED_CUSTOM_CODE_CHARS for char in value
         ):
             raise ValueError(
-                "эт самое, custom_code может содержать только буквы, цифры, '-' и '_'"
+                "custom_code может содержать только буквы, цифры, '-' и '_'"
             )
         return value
 

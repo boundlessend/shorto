@@ -26,20 +26,31 @@ class LinkService:
         custom_code: str | None,
         expires_in_seconds: int | None,
     ) -> ShortLink:
-        if custom_code and self.repository.exists(custom_code):
-            raise CodeAlreadyExistsError(custom_code)
-
-        link = ShortLink(
-            original_url=original_url,
-            code=custom_code or self._generate_unique_code(),
-            expires_at=(
-                utc_now() + timedelta(seconds=expires_in_seconds)
-                if expires_in_seconds is not None
-                else None
-            ),
+        expires_at = (
+            utc_now() + timedelta(seconds=expires_in_seconds)
+            if expires_in_seconds is not None
+            else None
         )
-        self.repository.add(link)
-        return link
+        if custom_code is not None:
+            link = ShortLink(
+                original_url=original_url,
+                code=custom_code,
+                expires_at=expires_at,
+            )
+
+            if not self.repository.add_if_absent(link):
+                raise CodeAlreadyExistsError(custom_code)
+
+            return link
+        while True:
+            code = self._generate_code()
+            link = ShortLink(
+                original_url=original_url,
+                code=code,
+                expires_at=expires_at,
+            )
+            if self.repository.add_if_absent(link):
+                return link
 
     def resolve_link(self, code: str) -> ShortLink:
         link = self._get_existing_link(code)
@@ -73,11 +84,8 @@ class LinkService:
             raise LinkNotFoundError(code)
         return link
 
-    def _generate_unique_code(self) -> str:
-        while True:
-            code = "".join(
-                secrets.choice(self._alphabet)
-                for _ in range(self._default_code_length)
-            )
-            if not self.repository.exists(code):
-                return code
+    def _generate_code(self) -> str:
+        return "".join(
+            secrets.choice(self._alphabet)
+            for _ in range(self._default_code_length)
+        )

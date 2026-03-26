@@ -2,20 +2,37 @@
 
 ## локальный запуск
 
-### 1. создать и активировать виртуальное окружение
+### 1. клонировать репозиторий
 
 ```bash
+git clone git@github.com:boundlessend/shorto.git
+cd shorto
+```
+
+### 2. создать и активировать виртуальное окружение
+
+macOS / linux:
+
+```bash
+python3 -m venv venv
+source venv/bin/activate
+```
+
+win powershell:
+
+```powershell
 python -m venv venv
-source venv/Scripts/activate
+.\venv\Scripts\Activate.ps1
 ```
 
-### 2. установить зависимости
+### 3. установить зависимости
 
 ```bash
-pip install -r requirements.txt
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
 ```
 
-### 3. запустить приложение
+### 4. запустить приложение
 
 ```bash
 uvicorn app.main:app --reload
@@ -149,3 +166,102 @@ pytest .
 - `link_inactive`
 
 ---
+## сценарии ручной проверки 
+
+### 1. создаем ссылку с автогенерацией кода
+
+```bash
+curl -X POST "http://127.0.0.1:8000/links" \
+
+  -H "Content-Type: application/json" \
+
+  -d '{
+
+    "original_url": "https://example.com/long/path"
+
+  }'
+```
+
+### 2. создаем ссылку с кастомным кодом
+
+```bash
+curl -X POST "http://127.0.0.1:8000/links" \
+
+  -H "Content-Type: application/json" \
+
+  -d '{
+
+    "original_url": "https://example.com/custom",
+
+    "custom_code": "my-custom-code"
+
+  }'
+```
+
+### 3. создаем ссылку со сроком жизни
+
+```bash
+curl -X POST "http://127.0.0.1:8000/links" \
+
+  -H "Content-Type: application/json" \
+
+  -d '{
+
+    "original_url": "https://example.com/temp",
+
+    "expires_in_seconds": 60
+
+  }'
+```
+
+### 4. получаем статистику по ссылке
+
+```bash
+curl "http://127.0.0.1:8000/links/my-custom-code"
+```
+
+### 5. переходим по короткой ссылке
+
+```bash
+curl -i "http://127.0.0.1:8000/my-custom-code"
+```
+
+### 6. пробуем создать ссылку с занятым `custom_code`
+
+```bash
+curl -X POST "http://127.0.0.1:8000/links" \
+
+  -H "Content-Type: application/json" \
+
+  -d '{
+
+    "original_url": "https://example.com/another",
+
+    "custom_code": "my-custom-code"
+
+  }'
+```
+
+ожидается `409 Conflict`.
+
+### 7. деактивируем ссылку и чекаем, что редирект больше не работает
+
+```bash
+curl -X DELETE "http://127.0.0.1:8000/links/my-custom-code"
+
+curl -i "http://127.0.0.1:8000/my-custom-code"
+```
+
+после деактивации ожидается `410 Gone`.
+
+---
+
+## что некст делаем
+
+1. мб постоянное хранилище (`PostgreSQL` / `Redis`).
+2. добавляем rate limiting
+3. хз, добавить удаление просроченных ссылок фоном 
+4. добавить owner/user и авторизацию
+5. добавить более гибкий фильтр и пагинацию для списка ссылок
+6. Добавить конфигурацию через `.env`
+7. Добавить логирование и middleware для request-id
