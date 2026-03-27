@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 
-@dataclass(slots=True)
+@dataclass
 class AppError(Exception):
     status_code: int
     error_code: str

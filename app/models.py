@@ -1,12 +1,12 @@
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 
 
 def utc_now() -> datetime:
-    return datetime.now(UTC)
+    return datetime.now(timezone.utc)
 
 
-@dataclass(slots=True)
+@dataclass
 class ShortLink:
     original_url: str
     code: str
