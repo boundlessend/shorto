@@ -2,6 +2,7 @@ import time
 
 
 def test_create_link_with_auto_generated_code(client):
+    """Проверяет создание ссылки с автоматически сгенерированным short-code."""
     response = client.post(
         "/links",
         json={"original_url": "https://example.com/some/very/long/path"},
@@ -16,6 +17,7 @@ def test_create_link_with_auto_generated_code(client):
 
 
 def test_create_link_with_custom_code(client):
+    """Проверяет создание ссылки с пользовательским short-code."""
     response = client.post(
         "/links",
         json={
@@ -29,6 +31,7 @@ def test_create_link_with_custom_code(client):
 
 
 def test_create_link_with_duplicate_custom_code_returns_conflict(client):
+    """Проверяет, что повторный custom-code возвращает HTTP 409 Conflict."""
     payload = {
         "original_url": "https://example.com/1",
         "custom_code": "taken-code",
@@ -49,6 +52,7 @@ def test_create_link_with_duplicate_custom_code_returns_conflict(client):
 
 
 def test_invalid_url_returns_validation_error(client):
+    """Проверяет, что невалидный URL возвращает унифицированную ошибку 422."""
     response = client.post(
         "/links",
         json={"original_url": "not-a-valid-url"},
@@ -59,6 +63,7 @@ def test_invalid_url_returns_validation_error(client):
 
 
 def test_redirect_increments_click_counter(client):
+    """Проверяет редирект на исходный URL и инкремент счётчика кликов."""
     create_response = client.post(
         "/links",
         json={"original_url": "https://example.com/docs"},
@@ -76,6 +81,7 @@ def test_redirect_increments_click_counter(client):
 
 
 def test_redirect_for_missing_code_returns_404(client):
+    """Проверяет, что неизвестный код возвращает ошибку 404."""
     response = client.get("/unknown-code", follow_redirects=False)
 
     assert response.status_code == 404
@@ -83,6 +89,7 @@ def test_redirect_for_missing_code_returns_404(client):
 
 
 def test_redirect_for_expired_code_returns_410(client):
+    """Проверяет, что истёкшая ссылка перестаёт редиректить и отдаёт 410."""
     create_response = client.post(
         "/links",
         json={
@@ -100,6 +107,7 @@ def test_redirect_for_expired_code_returns_410(client):
 
 
 def test_delete_deactivates_link(client):
+    """Проверяет деактивацию ссылки и запрет на дальнейший редирект."""
     create_response = client.post(
         "/links",
         json={"original_url": "https://example.com/delete-me"},
@@ -116,6 +124,7 @@ def test_delete_deactivates_link(client):
 
 
 def test_list_links_returns_created_links(client):
+    """Проверяет, что список ссылок возвращает все ранее созданные записи."""
     client.post("/links", json={"original_url": "https://example.com/1"})
     client.post("/links", json={"original_url": "https://example.com/2"})
 

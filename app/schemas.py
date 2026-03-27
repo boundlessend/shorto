@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Any
+
 
 from pydantic import BaseModel, ConfigDict, Field, HttpUrl, field_validator
 
@@ -8,28 +8,20 @@ ALLOWED_CUSTOM_CODE_CHARS = set(
 )
 
 
-class ErrorResponse(BaseModel):
-    error: dict[str, Any]
-
-
-class ValidationErrorItem(BaseModel):
-    loc: list[str | int]
-    msg: str
-    type: str
-
-
 class CreateLinkRequest(BaseModel):
+    """Тело запроса на создание короткой ссылки."""
+
     original_url: HttpUrl
     custom_code: str | None = Field(
         default=None,
         min_length=3,
         max_length=32,
-        description="Опциональный custom_short-код.",
+        description="Опциональный custom short-code длиной от 3 до 32 символов.",
     )
     expires_in_seconds: int | None = Field(
         default=None,
         gt=0,
-        description="Опциональный TTL в секундах.",
+        description="Опциональный TTL в секундах. После истечения ссылка вернёт 410.",
     )
 
     @field_validator("custom_code")
@@ -45,6 +37,8 @@ class CreateLinkRequest(BaseModel):
 
 
 class LinkBase(BaseModel):
+    """Базовые поля короткой ссылки, используемые в большинстве ответов."""
+
     original_url: str
     code: str
     created_at: datetime
@@ -53,31 +47,39 @@ class LinkBase(BaseModel):
 
 
 class LinkWithStats(LinkBase):
+    """Расширенная версия ссылки со статистикой и флагом удаления."""
+
     clicks: int
     is_deleted: bool
 
 
 class CreateLinkResponse(LinkBase):
+    """Ответ после создания короткой ссылки."""
+
     short_url: str
 
 
 class LinkStatsResponse(LinkWithStats):
+    """Подробный ответ по одной короткой ссылке."""
+
     pass
 
 
 class LinkListItemResponse(LinkWithStats):
+    """Элемент ответа списка ссылок."""
+
     pass
 
 
 class DeleteLinkResponse(BaseModel):
+    """Ответ после деактивации ссылки."""
+
     message: str
     code: str
     is_active: bool
 
 
 class HealthResponse(BaseModel):
+    """Ответ health-check эндпоинта."""
+
     status: str = "ok"
-
-
-class InternalLinkDTO(LinkWithStats):
-    model_config = ConfigDict(from_attributes=True)

@@ -8,10 +8,6 @@ class InMemoryLinkRepository:
         self._storage: dict[str, ShortLink] = {}
         self._lock = RLock()
 
-    def add(self, link: ShortLink) -> None:
-        with self._lock:
-            self._storage[link.code] = link
-
     def add_if_absent(self, link: ShortLink) -> bool:
         with self._lock:
             if link.code in self._storage:
