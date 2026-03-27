@@ -19,10 +19,6 @@ class InMemoryLinkRepository:
         with self._lock:
             return self._storage.get(code)
 
-    def exists(self, code: str) -> bool:
-        with self._lock:
-            return code in self._storage
-
     def list_all(self) -> list[ShortLink]:
         with self._lock:
             return list(self._storage.values())
